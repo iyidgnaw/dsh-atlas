@@ -1,0 +1,36 @@
+name: Sync DeepSeek Harness notes
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm sync
+      - run: pnpm test
+      - run: pnpm build
+      - name: Commit refreshed data
+        run: |
+          if git diff --quiet -- public/data; then
+            echo "No data changes"
+            exit 0
+          fi
+          revision=$(node -p "require('./public/data/catalog.json').sourceRevision.slice(0, 12)")
+          git config user.name "deepseek-harness-atlas[bot]"
+          git config user.email "deepseek-harness-atlas[bot]@users.noreply.github.com"
+          git add public/data
+          git commit -m "data: sync deepseek-harness ${revision}"
+          git push

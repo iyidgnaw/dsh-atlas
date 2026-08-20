@@ -1,0 +1,36 @@
+{
+  "name": "deepseek-harness-explorer",
+  "version": "1.0.0",
+  "description": "A visual field guide to DeepSeek Harness skills and architecture decisions.",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node --test build.test.mjs",
+    "data:build": "node build.mjs --source .cache/deepseek-harness",
+    "data:check": "node build.mjs --source .cache/deepseek-harness --check",
+    "sync": "node sync-source.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@11.8.0",
+  "type": "module",
+  "dependencies": {
+    "next": "^16.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.1",
+    "typescript": "^6.0.3"
+  }
+}
