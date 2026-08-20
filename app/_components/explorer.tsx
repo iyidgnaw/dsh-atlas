@@ -30,7 +30,7 @@ function toggleSet<T>(source: Set<T>, value: T) {
 }
 
 export function Explorer({ catalog }: ExplorerProps) {
-  const [activeTab, setActiveTab] = useState<'skills' | 'notes'>('skills')
+  const [activeTab, setActiveTab] = useState<'skills' | 'notes'>('notes')
   const [skillSearch, setSkillSearch] = useState('')
   const [skillGroup, setSkillGroup] = useState('all')
   const [openSkills, setOpenSkills] = useState<Set<string>>(() => new Set())
@@ -40,7 +40,7 @@ export function Explorer({ catalog }: ExplorerProps) {
   const [categories, setCategories] = useState<Set<string>>(() => new Set(NOTE_CLASSES))
   const [globalLanguage, setGlobalLanguage] = useState<Language>('en')
   const [languageOverrides, setLanguageOverrides] = useState<Record<string, Language>>({})
-  const [openNotes, setOpenNotes] = useState<Set<string>>(() => new Set())
+  const [focusedNoteId, setFocusedNoteId] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH)
   const [pendingTarget, setPendingTarget] = useState<string | null>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -94,6 +94,23 @@ export function Explorer({ catalog }: ExplorerProps) {
     return () => cancelAnimationFrame(frame)
   }, [pendingTarget, visibleCount, visibleNotes])
 
+  useEffect(() => {
+    if (!focusedNoteId) return
+    let observer: IntersectionObserver | undefined
+    const frame = requestAnimationFrame(() => {
+      const target = [...document.querySelectorAll<HTMLElement>('[data-note-id]')].find(element => element.dataset.noteId === focusedNoteId)
+      if (!target) return
+      observer = new IntersectionObserver(entries => {
+        if (!entries[0]?.isIntersecting) setFocusedNoteId(current => current === focusedNoteId ? null : current)
+      })
+      observer.observe(target)
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+    }
+  }, [focusedNoteId, visibleCount])
+
   function languageFor(noteId: string) {
     return languageOverrides[noteId] || globalLanguage
   }
@@ -106,7 +123,7 @@ export function Explorer({ catalog }: ExplorerProps) {
     setStatus('all')
     setLifecycle('all')
     setCategories(current => new Set(current).add(note.category))
-    setOpenNotes(current => new Set(current).add(note.id))
+    setFocusedNoteId(note.id)
     setLanguageOverrides(current => ({ ...current, [note.id]: target.language }))
     setVisibleCount(Math.max(INITIAL_BATCH, catalog.notes.findIndex(candidate => candidate.id === note.id) + 1))
     setPendingTarget(note.id)
@@ -126,7 +143,7 @@ export function Explorer({ catalog }: ExplorerProps) {
           <button className={`tab ${activeTab === 'skills' ? 'active' : ''}`} type="button" onClick={() => setActiveTab('skills')}>Skills</button>
           <button className={`tab ${activeTab === 'notes' ? 'active' : ''}`} type="button" onClick={() => setActiveTab('notes')}>Notes</button>
         </nav>
-        <a className="repo-link" href={`${catalog.sourceRepository}/tree/${catalog.sourceRevision}`} target="_blank" rel="noreferrer">Tracking {catalog.sourceBranch} @ {catalog.sourceRevision.slice(0, 10)}</a>
+        <div className="repo-links"><a className="repo-link" href="https://github.com/iyidgnaw/dsh-atlas" target="_blank" rel="noreferrer">dsh-atlas repo</a><a className="repo-link" href={`${catalog.sourceRepository}/tree/${catalog.sourceRevision}`} target="_blank" rel="noreferrer">Tracking {catalog.sourceBranch} @ {catalog.sourceRevision.slice(0, 10)}</a></div>
       </header>
 
       <main>
@@ -134,7 +151,7 @@ export function Explorer({ catalog }: ExplorerProps) {
           <div className="eyebrow">A visual field guide</div>
           <h1>DeepSeek Harness Atlas</h1>
           <p className="tagline">Skills, architecture, and decisions—mapped.</p>
-          <p className="learn">Learn how DeepSeek Harness works through the workflows its agents follow and the bilingual decision records that shaped its architecture, features, reliability, testing, and development process.</p>
+          <p className="learn">A bilingual development timeline and roadmap for DeepSeek Harness, built directly from its Agent Notes.</p>
         </header>
 
         {activeTab === 'skills' ? (
@@ -183,24 +200,24 @@ export function Explorer({ catalog }: ExplorerProps) {
             </div>
             <div className="toolbar"><div className="shell">
               <div className="controls">
-                <input className="control search" type="search" value={noteSearch} onChange={event => { setNoteSearch(event.target.value); setVisibleCount(INITIAL_BATCH) }} placeholder="Search English or Chinese titles and problems…" aria-label="Search Notes" />
-                <select className="control" value={status} onChange={event => { setStatus(event.target.value); setVisibleCount(INITIAL_BATCH) }} aria-label="Note status">
+                <input className="control search" type="search" value={noteSearch} onChange={event => { setNoteSearch(event.target.value); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} placeholder="Search English or Chinese titles and problems…" aria-label="Search Notes" />
+                <select className="control" value={status} onChange={event => { setStatus(event.target.value); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} aria-label="Note status">
                   <option value="all">All statuses</option><option value="implemented">Implemented</option><option value="rejected">Rejected</option><option value="proposed">Proposed</option>
                 </select>
-                <select className="control" value={lifecycle} onChange={event => { setLifecycle(event.target.value); setVisibleCount(INITIAL_BATCH) }} aria-label="Note lifecycle">
+                <select className="control" value={lifecycle} onChange={event => { setLifecycle(event.target.value); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} aria-label="Note lifecycle">
                   <option value="all">All lifecycles</option><option value="implemented">Active implemented</option><option value="archived">Archived</option><option value="proposed">Proposed</option><option value="rejected">Rejected</option>
                 </select>
                 <div className="segmented" aria-label="Global Note language"><button className={globalLanguage === 'en' ? 'active' : ''} type="button" onClick={() => setAllLanguages('en')}>English</button><button className={globalLanguage === 'zh' ? 'active' : ''} type="button" onClick={() => setAllLanguages('zh')}>中文</button></div>
                 <span className="count">{visibleNotes.length} / {catalog.notes.length}</span>
               </div>
               <div className="tag-filters" aria-label="Note type filters">
-                {NOTE_CLASSES.map(category => <label className="tag-filter" key={category}><input type="checkbox" checked={categories.has(category)} onChange={() => { setCategories(current => toggleSet(current, category)); setVisibleCount(INITIAL_BATCH) }} /><span>{category}</span></label>)}
+                {NOTE_CLASSES.map(category => <label className="tag-filter" key={category}><input type="checkbox" checked={categories.has(category)} onChange={() => { setCategories(current => toggleSet(current, category)); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} /><span>{category}</span></label>)}
               </div>
             </div></div>
             <div className="shell">
               <div className="legend"><span><i className="implemented" />Implemented / Archived</span><span><i className="rejected" />Rejected</span><span><i className="proposed" />Proposed</span></div>
-              <div className="timeline">
-                {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={openNotes.has(note.id)} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setOpenNotes(current => toggleSet(current, note.id))} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
+              <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`}>
+                {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
                 {visibleCount < visibleNotes.length && <div className="sentinel" ref={sentinelRef}>Loading more decisions…</div>}
               </div>
               {!visibleNotes.length && <div className="empty">No Agent Notes match these filters.</div>}
@@ -231,7 +248,7 @@ interface TimelineNoteProps {
 function TimelineNote({ note, index, previousDate, language, open, sourceRepository, sourceRevision, notePathIndex, onNavigate, onToggle, onLanguage }: TimelineNoteProps) {
   return <>
     {note.date !== previousDate && <div className="date-row"><span>{note.date}</span></div>}
-    <article className={`timeline-item ${index % 2 ? 'right' : 'left'}`} data-status={note.status} data-category={note.category} data-note-id={note.id}>
+    <article className={`timeline-item ${index % 2 ? 'right' : 'left'} ${open ? 'focused' : ''}`} data-status={note.status} data-category={note.category} data-note-id={note.id}>
       <span className="pin" aria-hidden="true" />
       <div className={`note-card ${open ? 'open' : ''}`}>
         <div className="note-head">

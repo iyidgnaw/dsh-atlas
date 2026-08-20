@@ -38,7 +38,8 @@ button, input, select { color: inherit; font: inherit; }
 }
 .brand { font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; }
 .brand b { color: var(--blue); }
-.repo-link { color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; margin-left: auto; text-decoration: none; }
+.repo-links { align-items: center; display: flex; gap: 16px; margin-left: auto; }
+.repo-link { color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; text-decoration: none; }
 .repo-link:hover { color: var(--blue); }
 .tabs { align-self: stretch; display: flex; }
 .tab { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-weight: 700; padding-inline: 18px; }
@@ -97,11 +98,17 @@ button, input, select { color: inherit; font: inherit; }
 .legend .rejected { background: var(--red); }
 .legend .proposed { background: var(--amber); }
 .timeline { padding-block: 35px 90px; position: relative; }
-.timeline::before { background: linear-gradient(var(--blue), #9bbef0 40%, #68ae89 75%, var(--green)); bottom: 0; content: ""; left: 50%; position: absolute; top: 0; transform: translateX(-1px); width: 2px; }
+.timeline::before { background: linear-gradient(var(--blue), #9bbef0 40%, #68ae89 75%, var(--green)); bottom: 0; content: ""; left: 50%; position: absolute; top: 0; transform: translateX(-1px); transition: left 360ms ease; width: 2px; }
+.timeline.focus-left::before { left: calc(100% - 14px); }
+.timeline.focus-right::before { left: 14px; }
+.timeline.focused .timeline-item:not(.focused), .timeline.focused .date-row { opacity: 0.1; pointer-events: none; }
 .date-row { display: flex; justify-content: center; margin: 28px 0 15px; position: relative; z-index: 3; }
 .date-row span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 10px ui-monospace, monospace; padding: 4px 8px; }
 .timeline-item { --status: var(--green); --status-soft: var(--green-soft); --class: var(--blue); align-items: start; display: grid; grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr); margin-bottom: 18px; min-height: 78px; position: relative; }
-.timeline-item { content-visibility: auto; contain-intrinsic-size: auto 180px; }
+.timeline-item { content-visibility: auto; contain-intrinsic-size: auto 180px; transition: opacity 220ms ease; }
+.timeline-item.focused { content-visibility: visible; opacity: 1; }
+.timeline.focus-left .timeline-item.focused { grid-template-columns: minmax(0, 1fr) 28px 0; }
+.timeline.focus-right .timeline-item.focused { grid-template-columns: 0 28px minmax(0, 1fr); }
 .timeline-item[data-status="rejected"] { --status: var(--red); --status-soft: var(--red-soft); }
 .timeline-item[data-status="proposed"] { --status: var(--amber); --status-soft: var(--amber-soft); }
 .timeline-item[data-category="architecture"] { --class: #7650c5; }
@@ -116,6 +123,8 @@ button, input, select { color: inherit; font: inherit; }
 .timeline-item.left .note-card::after, .timeline-item.right .note-card::before { background: var(--status); content: ""; height: 1px; position: absolute; top: 33px; width: 38px; }
 .timeline-item.left .note-card::after { right: -39px; }
 .timeline-item.right .note-card::before { left: -39px; }
+.timeline.focus-left .timeline-item.focused .note-card::after { right: -15px; width: 14px; }
+.timeline.focus-right .timeline-item.focused .note-card::before { left: -15px; width: 14px; }
 .note-head { align-items: flex-start; display: flex; gap: 10px; padding: 17px 18px; }
 .note-open { background: none; border: 0; cursor: pointer; flex: 1; padding: 0; text-align: left; }
 .note-meta { align-items: center; color: var(--muted); display: flex; flex-wrap: wrap; font: 10px ui-monospace, monospace; gap: 6px; text-transform: uppercase; }
@@ -169,6 +178,7 @@ button, input, select { color: inherit; font: inherit; }
 @media (max-width: 620px) {
   .shell { width: calc(100% - 24px); }
   .repo-link { display: none; }
+  .repo-links { display: none; }
   .topbar { gap: 8px; }
   .tab { padding-inline: 12px; }
   .site-hero { padding-block: 44px 24px; }
@@ -177,4 +187,7 @@ button, input, select { color: inherit; font: inherit; }
   .note-summary { display: none; }
   .note-head { padding: 14px; }
   .note-detail { padding-inline: 14px; }
+  .timeline.focus-left::before, .timeline.focus-right::before { left: 14px; }
+  .timeline.focus-left .timeline-item.focused, .timeline.focus-right .timeline-item.focused { grid-template-columns: 28px minmax(0, 1fr); }
+  .timeline.focus-left .timeline-item.focused .note-card, .timeline.focus-right .timeline-item.focused .note-card { grid-column: 2; }
 }
