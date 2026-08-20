@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { ExplorerCatalog, Language } from '@/lib/types'
@@ -203,7 +204,7 @@ export function Explorer({ catalog }: ExplorerProps) {
                 return <article className={`skill-card ${open ? 'open' : ''}`} key={skill.id}>
                   <div className="skill-main">
                     <div className="skill-id">{skill.name}</div>
-                    <h3>{skill.title}</h3>
+                    <h3><Link className="permalink-title" href={`/skills/${skill.name}`} prefetch={false}>{skill.title}</Link></h3>
                     <p className="description">{skill.description}</p>
                     <div className="flow">{skill.workflow.map((step, index) => <div className="flow-step" data-step={index + 1} key={step}>{step}</div>)}</div>
                   </div>
@@ -256,7 +257,7 @@ export function Explorer({ catalog }: ExplorerProps) {
         )}
       </main>
       <button className="top-button" type="button" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>
-      <footer className="footer"><div className="shell">Source: <a href={catalog.sourceRepository} target="_blank" rel="noreferrer">{catalog.sourceRepository}</a> · {catalog.notes.length} bilingual Agent Notes</div></footer>
+      <footer className="footer"><div className="shell"><Link href="/notes">All {catalog.notes.length} Agent Notes</Link> · <Link href="/skills">All {catalog.skills.length} Skills</Link> · Source: <a href={catalog.sourceRepository} target="_blank" rel="noreferrer">{catalog.sourceRepository}</a></div></footer>
     </>
   )
 }
@@ -288,10 +289,10 @@ function TimelineNote({ note, index, previousDate, language, open, highlighted, 
             <h3 className="note-title">{note.title[language]}</h3>
             <p className="note-summary">{note.summary[language] || note.statusLine[language]}</p>
           </button>
-          <div className="card-actions"><button className="mini-button" type="button" onClick={onLanguage}>{language === 'en' ? '中文' : 'EN'}</button><button className="expand-button" type="button" aria-label={open ? 'Collapse Note' : 'Expand Note'} onClick={onToggle}>＋</button></div>
+          <div className="card-actions"><Link className="mini-button permalink" href={`/notes/${note.id}`} prefetch={false} aria-label={`Open the full page for ${note.title.en}`} title="Open the full Note page">↗</Link><button className="mini-button" type="button" onClick={onLanguage}>{language === 'en' ? '中文' : 'EN'}</button><button className="expand-button" type="button" aria-label={open ? 'Collapse Note' : 'Expand Note'} onClick={onToggle}>＋</button></div>
         </div>
         {open && <div className="note-detail">
-          <div className="source-path"><a href={`${sourceRepository}/blob/${sourceRevision}/${note.sourcePath}`} target="_blank" rel="noreferrer">{note.sourcePath}</a></div>
+          <div className="source-path"><a href={`${sourceRepository}/blob/${sourceRevision}/${note.sourcePath}`} target="_blank" rel="noreferrer">{note.sourcePath}</a> · <Link href={`/notes/${note.id}`} prefetch={false}>permalink</Link></div>
           {note.sourceWarnings.length > 0 && <p className="source-warning">Source compatibility: {note.sourceWarnings.join('; ')}</p>}
           <NoteBody bodyPath={note.bodyPath} language={language} sourcePath={note.sourcePath} sourceRepository={sourceRepository} sourceRevision={sourceRevision} notePathIndex={notePathIndex} onNavigate={onNavigate} />
         </div>}
