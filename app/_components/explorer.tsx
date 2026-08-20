@@ -140,8 +140,8 @@ export function Explorer({ catalog }: ExplorerProps) {
       <header className="shell topbar">
         <div className="brand"><b>DSH</b> / Atlas</div>
         <nav className="tabs" aria-label="Explorer views">
-          <button className={`tab ${activeTab === 'skills' ? 'active' : ''}`} type="button" onClick={() => setActiveTab('skills')}>Skills</button>
           <button className={`tab ${activeTab === 'notes' ? 'active' : ''}`} type="button" onClick={() => setActiveTab('notes')}>Notes</button>
+          <button className={`tab ${activeTab === 'skills' ? 'active' : ''}`} type="button" onClick={() => setActiveTab('skills')}>Skills</button>
         </nav>
         <div className="repo-links"><a className="repo-link" href="https://github.com/iyidgnaw/dsh-atlas" target="_blank" rel="noreferrer">dsh-atlas repo</a><a className="repo-link" href={`${catalog.sourceRepository}/tree/${catalog.sourceRevision}`} target="_blank" rel="noreferrer">Tracking {catalog.sourceBranch} @ {catalog.sourceRevision.slice(0, 10)}</a></div>
       </header>
