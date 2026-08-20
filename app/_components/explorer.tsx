@@ -113,7 +113,7 @@ export function Explorer({ catalog }: ExplorerProps) {
 
   useEffect(() => {
     if (!highlightedNoteId) return
-    const timeout = window.setTimeout(() => setHighlightedNoteId(null), 2500)
+    const timeout = window.setTimeout(() => setHighlightedNoteId(null), 3200)
     return () => window.clearTimeout(timeout)
   }, [highlightedNoteId])
 
@@ -242,13 +242,15 @@ export function Explorer({ catalog }: ExplorerProps) {
                 {NOTE_CLASSES.map(category => <label className="tag-filter" key={category}><input type="checkbox" checked={categories.has(category)} onChange={() => { setCategories(current => toggleSet(current, category)); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} /><span>{category}</span></label>)}
               </div>
             </div></div>
-            <div className="shell">
-              <div className="legend"><span><i className="implemented" />Implemented / Archived</span><span><i className="rejected" />Rejected</span><span><i className="proposed" />Proposed</span></div>
-              <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`} onClick={event => { if (focusedNoteId && !(event.target as Element).closest('.note-card')) setFocusedNoteId(null) }}>
-                {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} highlighted={highlightedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
-                {visibleCount < visibleNotes.length && <div className="sentinel" ref={sentinelRef}>Loading more decisions…</div>}
+            <div className="timeline-region" onClick={event => { if (focusedNoteId && !(event.target as Element).closest('.note-card')) setFocusedNoteId(null) }}>
+              <div className="shell">
+                <div className="legend"><span><i className="implemented" />Implemented / Archived</span><span><i className="rejected" />Rejected</span><span><i className="proposed" />Proposed</span></div>
+                <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`}>
+                  {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} highlighted={highlightedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
+                  {visibleCount < visibleNotes.length && <div className="sentinel" ref={sentinelRef}>Loading more decisions…</div>}
+                </div>
+                {!visibleNotes.length && <div className="empty">No Agent Notes match these filters.</div>}
               </div>
-              {!visibleNotes.length && <div className="empty">No Agent Notes match these filters.</div>}
             </div>
           </section>
         )}

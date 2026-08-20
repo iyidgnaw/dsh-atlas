@@ -28,6 +28,7 @@ body {
 }
 button, input, select { color: inherit; font: inherit; }
 .shell { width: min(1400px, calc(100% - 40px)); margin-inline: auto; }
+.timeline-region { width: 100%; }
 
 .topbar {
   align-items: center;
@@ -110,8 +111,8 @@ button, input, select { color: inherit; font: inherit; }
 .timeline-item { content-visibility: auto; contain-intrinsic-size: auto 180px; transition: opacity 220ms ease; }
 .timeline-item.focused { content-visibility: visible; opacity: 1; }
 .timeline-item.destination-highlight { content-visibility: visible; opacity: 1 !important; }
-.timeline-item.destination-highlight .note-card { animation: destination-card-pulse 2500ms ease-out; }
-.timeline-item.destination-highlight .pin { animation: destination-pin-pulse 2500ms ease-out; }
+.timeline-item.destination-highlight .note-card { animation: destination-card-pulse 3000ms ease-out; }
+.timeline-item.destination-highlight .pin { animation: destination-pin-pulse 3000ms ease-out; }
 .timeline.focus-left .timeline-item.focused { grid-template-columns: minmax(0, 1fr) 28px 0; }
 .timeline.focus-right .timeline-item.focused { grid-template-columns: 0 28px minmax(0, 1fr); }
 .timeline-item[data-status="rejected"] { --status: var(--red); --status-soft: var(--red-soft); }
@@ -169,12 +170,14 @@ button, input, select { color: inherit; font: inherit; }
 .progress { background: var(--blue); height: 2px; left: 0; position: fixed; top: 0; width: 0; z-index: 60; }
 
 @keyframes destination-card-pulse {
-  0%, 18% { background: var(--blue-soft); outline: 4px solid rgba(23, 105, 223, 0.62); outline-offset: 5px; box-shadow: 0 18px 54px rgba(23, 105, 223, 0.24); }
+  0%, 18%, 36% { background: var(--blue-soft); outline: 4px solid rgba(23, 105, 223, 0.66); outline-offset: 6px; box-shadow: 0 18px 54px rgba(23, 105, 223, 0.28); }
+  9%, 27%, 45% { background: var(--surface); outline: 1px solid rgba(23, 105, 223, 0.16); outline-offset: 2px; box-shadow: var(--shadow); }
   100% { background: var(--surface); outline: 0 solid transparent; outline-offset: 0; box-shadow: var(--shadow); }
 }
 
 @keyframes destination-pin-pulse {
-  0%, 22% { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 0 9px rgba(23, 105, 223, 0.18); }
+  0%, 18%, 36% { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 0 10px rgba(23, 105, 223, 0.22); }
+  9%, 27%, 45% { background: var(--surface); border-color: var(--status); box-shadow: 0 0 0 4px var(--paper); }
   100% { background: var(--surface); border-color: var(--status); box-shadow: 0 0 0 4px var(--paper); }
 }
 
