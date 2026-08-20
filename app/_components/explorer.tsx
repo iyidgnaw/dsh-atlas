@@ -43,6 +43,7 @@ export function Explorer({ catalog }: ExplorerProps) {
   const [focusedNoteId, setFocusedNoteId] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH)
   const [pendingTarget, setPendingTarget] = useState<string | null>(null)
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   const skillGroups = useMemo(() => [...new Set(catalog.skills.map(skill => skill.group))], [catalog.skills])
@@ -84,24 +85,51 @@ export function Explorer({ catalog }: ExplorerProps) {
     const index = visibleNotes.findIndex(note => note.id === pendingTarget)
     if (index < 0) return
     if (index >= visibleCount) return
+    let settleFrame = 0
+    const startedAt = performance.now()
     const frame = requestAnimationFrame(() => {
       const target = [...document.querySelectorAll<HTMLElement>('[data-note-id]')].find(element => element.dataset.noteId === pendingTarget)
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        setPendingTarget(null)
+        const settle = () => {
+          const bounds = target.getBoundingClientRect()
+          const centerDistance = Math.abs((bounds.top + bounds.bottom) / 2 - window.innerHeight / 2)
+          if (centerDistance < 140 || performance.now() - startedAt > 1400) {
+            target.scrollIntoView({ block: 'center' })
+            setHighlightedNoteId(pendingTarget)
+            setPendingTarget(null)
+            return
+          }
+          settleFrame = requestAnimationFrame(settle)
+        }
+        settleFrame = requestAnimationFrame(settle)
       }
     })
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(frame)
+      cancelAnimationFrame(settleFrame)
+    }
   }, [pendingTarget, visibleCount, visibleNotes])
 
   useEffect(() => {
-    if (!focusedNoteId) return
+    if (!highlightedNoteId) return
+    const timeout = window.setTimeout(() => setHighlightedNoteId(null), 2500)
+    return () => window.clearTimeout(timeout)
+  }, [highlightedNoteId])
+
+  useEffect(() => {
+    if (!focusedNoteId || pendingTarget || highlightedNoteId === focusedNoteId) return
     let observer: IntersectionObserver | undefined
     const frame = requestAnimationFrame(() => {
       const target = [...document.querySelectorAll<HTMLElement>('[data-note-id]')].find(element => element.dataset.noteId === focusedNoteId)
       if (!target) return
+      let hasIntersected = false
       observer = new IntersectionObserver(entries => {
-        if (!entries[0]?.isIntersecting) setFocusedNoteId(current => current === focusedNoteId ? null : current)
+        if (entries[0]?.isIntersecting) {
+          hasIntersected = true
+          return
+        }
+        if (hasIntersected) setFocusedNoteId(current => current === focusedNoteId ? null : current)
       })
       observer.observe(target)
     })
@@ -109,7 +137,7 @@ export function Explorer({ catalog }: ExplorerProps) {
       cancelAnimationFrame(frame)
       observer?.disconnect()
     }
-  }, [focusedNoteId, visibleCount])
+  }, [focusedNoteId, highlightedNoteId, pendingTarget, visibleCount])
 
   function languageFor(noteId: string) {
     return languageOverrides[noteId] || globalLanguage
@@ -123,7 +151,7 @@ export function Explorer({ catalog }: ExplorerProps) {
     setStatus('all')
     setLifecycle('all')
     setCategories(current => new Set(current).add(note.category))
-    setFocusedNoteId(note.id)
+    setFocusedNoteId(null)
     setLanguageOverrides(current => ({ ...current, [note.id]: target.language }))
     setVisibleCount(Math.max(INITIAL_BATCH, catalog.notes.findIndex(candidate => candidate.id === note.id) + 1))
     setPendingTarget(note.id)
@@ -216,8 +244,8 @@ export function Explorer({ catalog }: ExplorerProps) {
             </div></div>
             <div className="shell">
               <div className="legend"><span><i className="implemented" />Implemented / Archived</span><span><i className="rejected" />Rejected</span><span><i className="proposed" />Proposed</span></div>
-              <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`}>
-                {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
+              <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`} onClick={event => { if (focusedNoteId && !(event.target as Element).closest('.note-card')) setFocusedNoteId(null) }}>
+                {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} highlighted={highlightedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
                 {visibleCount < visibleNotes.length && <div className="sentinel" ref={sentinelRef}>Loading more decisions…</div>}
               </div>
               {!visibleNotes.length && <div className="empty">No Agent Notes match these filters.</div>}
@@ -237,6 +265,7 @@ interface TimelineNoteProps {
   previousDate?: string
   language: Language
   open: boolean
+  highlighted: boolean
   sourceRepository: string
   sourceRevision: string
   notePathIndex: Record<string, NoteTarget>
@@ -245,10 +274,10 @@ interface TimelineNoteProps {
   onLanguage: () => void
 }
 
-function TimelineNote({ note, index, previousDate, language, open, sourceRepository, sourceRevision, notePathIndex, onNavigate, onToggle, onLanguage }: TimelineNoteProps) {
+function TimelineNote({ note, index, previousDate, language, open, highlighted, sourceRepository, sourceRevision, notePathIndex, onNavigate, onToggle, onLanguage }: TimelineNoteProps) {
   return <>
     {note.date !== previousDate && <div className="date-row"><span>{note.date}</span></div>}
-    <article className={`timeline-item ${index % 2 ? 'right' : 'left'} ${open ? 'focused' : ''}`} data-status={note.status} data-category={note.category} data-note-id={note.id}>
+    <article className={`timeline-item ${index % 2 ? 'right' : 'left'} ${open ? 'focused' : ''} ${highlighted ? 'destination-highlight' : ''}`} data-status={note.status} data-category={note.category} data-note-id={note.id}>
       <span className="pin" aria-hidden="true" />
       <div className={`note-card ${open ? 'open' : ''}`}>
         <div className="note-head">
