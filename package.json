@@ -11,7 +11,8 @@
     "test": "node --test build.test.mjs",
     "data:build": "node build.mjs --source .cache/deepseek-harness",
     "data:check": "node build.mjs --source .cache/deepseek-harness --check",
-    "sync": "node sync-source.mjs"
+    "sync": "node sync-source.mjs",
+    "explorer:html": "node build-agent-explorer.mjs"
   },
   "keywords": [],
   "author": "",

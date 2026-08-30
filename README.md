@@ -83,6 +83,23 @@ Open [http://localhost:3000](http://localhost:3000).
 `pnpm sync` maintains a shallow, gitignored clone at `.cache/deepseek-harness`, fetches only upstream
 `master`, regenerates `public/data/`, and runs reconciliation against the fetched commit.
 
+## Standalone HTML pages
+
+This repository also owns the generator for the two self-contained pages committed at
+`.agents/explorer/` in the DeepSeek Harness repository (`skills.html` and `timeline.html`):
+
+```sh
+pnpm explorer:html -- /path/to/deepseek-harness
+```
+
+It writes both files into that checkout's `.agents/explorer/` directory. They are single-file,
+offline-ready pages with every note and skill body embedded, and they are tracked by the harness
+repository, so regenerate and commit them there whenever the note corpus changes.
+
+The generator canonicalises references to the unavailable legacy repository
+(`deepseek-ai/deepseek-harness-sdk` → `deepseek-ai/deepseek-harness`) so the regenerated pages keep
+passing the harness repository's `verify-public-repository-links` gate.
+
 ## Data integrity
 
 The scanner treats a Note as a bilingual English/Chinese pair under a canonical lifecycle and class path.
