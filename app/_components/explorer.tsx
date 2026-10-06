@@ -2,9 +2,16 @@
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 
 import type { ExplorerCatalog, Language } from '@/lib/types'
+import {
+  getProgressServerSnapshot,
+  getProgressSnapshot,
+  rememberReading,
+  resolveNoteId,
+  subscribeReading,
+} from '@/lib/reading-session'
 
 const MarkdownContent = dynamic(() => import('./markdown-content').then(module => module.MarkdownContent))
 const NoteBody = dynamic(() => import('./note-body').then(module => module.NoteBody), {
@@ -46,7 +53,18 @@ export function Explorer({ catalog }: ExplorerProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH)
   const [pendingTarget, setPendingTarget] = useState<string | null>(null)
   const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null)
+  const [resumeDismissed, setResumeDismissed] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
+
+  // The reading position lives in localStorage. The server snapshot stays empty and the browser
+  // swaps in the stored one right after hydration, so the two renders never disagree.
+  const progress = useSyncExternalStore(subscribeReading, getProgressSnapshot, getProgressServerSnapshot)
+
+  const resumeNote = useMemo(() => {
+    if (!progress || resumeDismissed) return null
+    const id = resolveNoteId(progress, catalog.notes)
+    return id ? catalog.notes.find(note => note.id === id) ?? null : null
+  }, [catalog.notes, progress, resumeDismissed])
 
   const skillGroups = useMemo(() => [...new Set(catalog.skills.map(skill => skill.group))], [catalog.skills])
   const visibleSkills = useMemo(() => {
@@ -146,9 +164,7 @@ export function Explorer({ catalog }: ExplorerProps) {
     return languageOverrides[noteId] || globalLanguage
   }
 
-  function navigateToNote(target: NoteTarget) {
-    const note = catalog.notes.find(candidate => candidate.id === target.id)
-    if (!note) return
+  function revealNote(note: ExplorerCatalog['notes'][number], language: Language) {
     const ordered = newestFirst ? [...catalog.notes].reverse() : catalog.notes
     const nextCategories = new Set(categories).add(note.category)
     const revealed = ordered.filter(candidate => nextCategories.has(candidate.category))
@@ -158,9 +174,38 @@ export function Explorer({ catalog }: ExplorerProps) {
     setLifecycle('all')
     setCategories(nextCategories)
     setFocusedNoteId(null)
-    setLanguageOverrides(current => ({ ...current, [note.id]: target.language }))
+    setLanguageOverrides(current => ({ ...current, [note.id]: language }))
     setVisibleCount(Math.max(INITIAL_BATCH, revealed.findIndex(candidate => candidate.id === note.id) + 1))
     setPendingTarget(note.id)
+  }
+
+  function rememberNote(note: ExplorerCatalog['notes'][number], language: Language) {
+    rememberReading(note, language, catalog.sourceRevision)
+  }
+
+  /** A deliberate move to a Note: reveal it, remember it as the reading position, and record the path. */
+  function openNote(target: NoteTarget) {
+    const note = catalog.notes.find(candidate => candidate.id === target.id)
+    if (!note) return
+    revealNote(note, target.language)
+    rememberNote(note, target.language)
+  }
+
+  /** Opening a Note where it sits in the timeline rather than jumping to it. */
+  function toggleNote(note: ExplorerCatalog['notes'][number]) {
+    if (focusedNoteId === note.id) {
+      setFocusedNoteId(null)
+      return
+    }
+    const language = languageFor(note.id)
+    setFocusedNoteId(note.id)
+    rememberNote(note, language)
+  }
+
+  function resumeReading() {
+    if (!resumeNote || !progress) return
+    setResumeDismissed(true)
+    openNote({ id: resumeNote.id, language: progress.language })
   }
 
   function setAllLanguages(language: Language) {
@@ -238,6 +283,15 @@ export function Explorer({ catalog }: ExplorerProps) {
               </div>
               <p className="archive-note">Archived nodes stay green because their decisions shipped. They are frozen historical records, not current authority.</p>
             </div>
+            {resumeNote && progress && <div className="shell"><div className="resume-bar">
+              <button className="resume-jump" type="button" onClick={resumeReading}>
+                <span className="resume-eyebrow">Continue reading</span>
+                <span className="resume-title">{resumeNote.title[progress.language]}</span>
+                <span className="resume-meta">{resumeNote.date} · {resumeNote.category}</span>
+                <span className="resume-arrow" aria-hidden="true">→</span>
+              </button>
+              <button className="resume-dismiss" type="button" aria-label="Dismiss the resume suggestion" title="Dismiss" onClick={() => setResumeDismissed(true)}>×</button>
+            </div></div>}
             <div className="toolbar"><div className="shell">
               <div className="controls">
                 <input className="control search" type="search" value={noteSearch} onChange={event => { setNoteSearch(event.target.value); setVisibleCount(INITIAL_BATCH); setFocusedNoteId(null) }} placeholder="Search English or Chinese titles and problems…" aria-label="Search Notes" />
@@ -259,7 +313,7 @@ export function Explorer({ catalog }: ExplorerProps) {
               <div className="shell">
                 <div className="legend"><span><i className="implemented" />Implemented / Archived</span><span><i className="rejected" />Rejected</span><span><i className="proposed" />Proposed</span></div>
                 <div className={`timeline ${focusedNoteId ? `focused focus-${visibleNotes.findIndex(note => note.id === focusedNoteId) % 2 ? 'right' : 'left'}` : ''}`}>
-                  {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} highlighted={highlightedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={navigateToNote} onToggle={() => setFocusedNoteId(current => current === note.id ? null : note.id)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
+                  {visibleNotes.slice(0, visibleCount).map((note, index) => <TimelineNote key={note.id} note={note} index={index} previousDate={visibleNotes[index - 1]?.date} language={languageFor(note.id)} open={focusedNoteId === note.id} highlighted={highlightedNoteId === note.id} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision} notePathIndex={notePathIndex} onNavigate={openNote} onToggle={() => toggleNote(note)} onLanguage={() => setLanguageOverrides(current => ({ ...current, [note.id]: languageFor(note.id) === 'en' ? 'zh' : 'en' }))} />)}
                   {visibleCount < visibleNotes.length && <div className="sentinel" ref={sentinelRef}>Loading more decisions…</div>}
                 </div>
                 {!visibleNotes.length && <div className="empty">No Agent Notes match these filters.</div>}

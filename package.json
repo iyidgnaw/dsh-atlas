@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --test build.test.mjs",
+    "test": "node --test",
     "data:build": "node build.mjs --source .cache/deepseek-harness",
     "data:check": "node build.mjs --source .cache/deepseek-harness --check",
     "sync": "node sync-source.mjs",

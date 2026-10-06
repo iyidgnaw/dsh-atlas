@@ -172,6 +172,15 @@ a.disclose:hover { color: var(--blue); }
 .footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; padding-block: 35px 50px; }
 .footer a { color: var(--blue); }
 .top-button { background: var(--surface); border: 1px solid var(--line); border-radius: 50%; bottom: 18px; box-shadow: var(--shadow); cursor: pointer; height: 42px; position: fixed; right: 18px; width: 42px; z-index: 40; }
+.resume-bar { align-items: center; background: var(--blue-soft); border: 1px solid #c9ddfb; border-radius: 12px; display: flex; gap: 6px; margin-bottom: 14px; padding: 6px 8px 6px 6px; position: relative; z-index: 41; }
+.resume-jump { align-items: baseline; background: none; border: 0; cursor: pointer; display: flex; flex: 1; gap: 10px; min-width: 0; padding: 6px 8px; text-align: left; }
+.resume-jump:hover .resume-title { color: var(--blue); }
+.resume-eyebrow { color: var(--blue); font: 10px ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.resume-title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resume-meta { color: var(--muted); font: 11px ui-monospace, monospace; white-space: nowrap; }
+.resume-arrow { color: var(--blue); margin-left: auto; }
+.resume-dismiss { background: none; border: 0; border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 6px 9px; }
+.resume-dismiss:hover { background: rgba(23, 105, 223, 0.12); color: var(--ink); }
 .progress { background: var(--blue); height: 2px; left: 0; position: fixed; top: 0; width: 0; z-index: 60; }
 .ocean-current { inset: 0; pointer-events: none; position: fixed; z-index: -1; }
 
@@ -268,6 +277,8 @@ a.disclose:hover { color: var(--blue); }
   .index-title { flex-basis: 100%; order: 3; }
   .repo-link { display: none; }
   .repo-links { display: none; }
+  .resume-eyebrow, .resume-meta { display: none; }
+  .resume-jump { gap: 0; }
   .topbar { gap: 8px; }
   .tab { padding-inline: 12px; }
   .site-hero { padding-block: 44px 24px; }
