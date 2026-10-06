@@ -39,6 +39,7 @@ export function Explorer({ catalog }: ExplorerProps) {
   const [status, setStatus] = useState('all')
   const [lifecycle, setLifecycle] = useState('all')
   const [categories, setCategories] = useState<Set<string>>(() => new Set(NOTE_CLASSES))
+  const [newestFirst, setNewestFirst] = useState(false)
   const [globalLanguage, setGlobalLanguage] = useState<Language>('en')
   const [languageOverrides, setLanguageOverrides] = useState<Record<string, Language>>({})
   const [focusedNoteId, setFocusedNoteId] = useState<string | null>(null)
@@ -58,13 +59,14 @@ export function Explorer({ catalog }: ExplorerProps) {
 
   const visibleNotes = useMemo(() => {
     const query = noteSearch.trim().toLowerCase()
-    return catalog.notes.filter(note => (
+    const matched = catalog.notes.filter(note => (
       (!query || `${note.title.en} ${note.title.zh} ${note.summary.en} ${note.summary.zh}`.toLowerCase().includes(query)) &&
       (status === 'all' || note.status === status) &&
       (lifecycle === 'all' || note.lifecycle === lifecycle) &&
       categories.has(note.category)
     ))
-  }, [catalog.notes, categories, lifecycle, noteSearch, status])
+    return newestFirst ? matched.reverse() : matched
+  }, [catalog.notes, categories, lifecycle, newestFirst, noteSearch, status])
 
   const notePathIndex = useMemo(() => Object.fromEntries(catalog.notes.flatMap(note => [
     [note.sourcePath, { id: note.id, language: 'en' as const }],
@@ -147,20 +149,29 @@ export function Explorer({ catalog }: ExplorerProps) {
   function navigateToNote(target: NoteTarget) {
     const note = catalog.notes.find(candidate => candidate.id === target.id)
     if (!note) return
+    const ordered = newestFirst ? [...catalog.notes].reverse() : catalog.notes
+    const nextCategories = new Set(categories).add(note.category)
+    const revealed = ordered.filter(candidate => nextCategories.has(candidate.category))
     setActiveTab('notes')
     setNoteSearch('')
     setStatus('all')
     setLifecycle('all')
-    setCategories(current => new Set(current).add(note.category))
+    setCategories(nextCategories)
     setFocusedNoteId(null)
     setLanguageOverrides(current => ({ ...current, [note.id]: target.language }))
-    setVisibleCount(Math.max(INITIAL_BATCH, catalog.notes.findIndex(candidate => candidate.id === note.id) + 1))
+    setVisibleCount(Math.max(INITIAL_BATCH, revealed.findIndex(candidate => candidate.id === note.id) + 1))
     setPendingTarget(note.id)
   }
 
   function setAllLanguages(language: Language) {
     setGlobalLanguage(language)
     setLanguageOverrides({})
+  }
+
+  function setOrder(reverse: boolean) {
+    setNewestFirst(reverse)
+    setVisibleCount(INITIAL_BATCH)
+    setFocusedNoteId(null)
   }
 
   return (
@@ -237,6 +248,7 @@ export function Explorer({ catalog }: ExplorerProps) {
                   <option value="all">All lifecycles</option><option value="implemented">Active implemented</option><option value="archived">Archived</option><option value="proposed">Proposed</option><option value="rejected">Rejected</option>
                 </select>
                 <div className="segmented" aria-label="Global Note language"><button className={globalLanguage === 'en' ? 'active' : ''} type="button" onClick={() => setAllLanguages('en')}>English</button><button className={globalLanguage === 'zh' ? 'active' : ''} type="button" onClick={() => setAllLanguages('zh')}>中文</button></div>
+                <div className="segmented" aria-label="Note order"><button className={newestFirst ? '' : 'active'} type="button" onClick={() => setOrder(false)}>Oldest first</button><button className={newestFirst ? 'active' : ''} type="button" onClick={() => setOrder(true)}>Newest first</button></div>
                 <span className="count">{visibleNotes.length} / {catalog.notes.length}</span>
               </div>
               <div className="tag-filters" aria-label="Note type filters">

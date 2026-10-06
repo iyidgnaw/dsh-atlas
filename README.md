@@ -11,6 +11,7 @@ The Atlas follows upstream `master`, records the exact source commit behind ever
 - A chronological Git-tree-style timeline with one node per Agent Note.
 - Implemented and archived decisions in green, rejected proposals in red, and active proposals in amber.
 - Multi-select filters for architecture, bug fixes, features, process, simplification, and testing.
+- An order control that keeps the oldest-first trunk by default and reverses it to newest first.
 - English and Chinese at both global and per-Note level.
 - Focus mode that expands one Note across the tree, then zooms out on scroll or a click in the surrounding Timeline region.
 - Internal Agent Note links that navigate to and repeatedly highlight the destination node.
