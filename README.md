@@ -13,6 +13,7 @@ The Atlas follows upstream `master`, records the exact source commit behind ever
 - Multi-select filters for architecture, bug fixes, features, process, simplification, and testing.
 - An order control that keeps the oldest-first trunk by default and reverses it to newest first.
 - A reading position kept in the browser, offered back on your next visit as a dismissible "Continue reading" bar.
+- A path through the Notes you opened, with back and forward controls that name the Note they return to.
 - English and Chinese at both global and per-Note level.
 - Focus mode that expands one Note across the tree, then zooms out on scroll or a click in the surrounding Timeline region.
 - Internal Agent Note links that navigate to and repeatedly highlight the destination node.

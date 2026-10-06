@@ -6,10 +6,18 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 
 import type { ExplorerCatalog, Language } from '@/lib/types'
 import {
+  backEntry,
+  entryFor,
+  forwardEntry,
+  getHistoryServerSnapshot,
+  getHistorySnapshot,
   getProgressServerSnapshot,
   getProgressSnapshot,
+  pushHistory,
   rememberReading,
   resolveNoteId,
+  setHistory,
+  stepHistory,
   subscribeReading,
 } from '@/lib/reading-session'
 
@@ -56,9 +64,10 @@ export function Explorer({ catalog }: ExplorerProps) {
   const [resumeDismissed, setResumeDismissed] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  // The reading position lives in localStorage. The server snapshot stays empty and the browser
+  // The reading session lives in localStorage. The server snapshot stays empty and the browser
   // swaps in the stored one right after hydration, so the two renders never disagree.
   const progress = useSyncExternalStore(subscribeReading, getProgressSnapshot, getProgressServerSnapshot)
+  const history = useSyncExternalStore(subscribeReading, getHistorySnapshot, getHistoryServerSnapshot)
 
   const resumeNote = useMemo(() => {
     if (!progress || resumeDismissed) return null
@@ -183,11 +192,16 @@ export function Explorer({ catalog }: ExplorerProps) {
     rememberReading(note, language, catalog.sourceRevision)
   }
 
+  function recordPath(note: ExplorerCatalog['notes'][number], language: Language) {
+    setHistory(pushHistory(history, entryFor(note, language)))
+  }
+
   /** A deliberate move to a Note: reveal it, remember it as the reading position, and record the path. */
   function openNote(target: NoteTarget) {
     const note = catalog.notes.find(candidate => candidate.id === target.id)
     if (!note) return
     revealNote(note, target.language)
+    recordPath(note, target.language)
     rememberNote(note, target.language)
   }
 
@@ -199,7 +213,19 @@ export function Explorer({ catalog }: ExplorerProps) {
     }
     const language = languageFor(note.id)
     setFocusedNoteId(note.id)
+    recordPath(note, language)
     rememberNote(note, language)
+  }
+
+  function stepTo(direction: -1 | 1) {
+    const stepped = stepHistory(history, direction, entry => resolveNoteId(entry, catalog.notes) !== null)
+    if (!stepped.entry) return
+    const id = resolveNoteId(stepped.entry, catalog.notes)
+    const note = catalog.notes.find(candidate => candidate.id === id)
+    if (!note) return
+    setHistory(stepped.state)
+    revealNote(note, stepped.entry.language)
+    rememberNote(note, stepped.entry.language)
   }
 
   function resumeReading() {
@@ -207,6 +233,9 @@ export function Explorer({ catalog }: ExplorerProps) {
     setResumeDismissed(true)
     openNote({ id: resumeNote.id, language: progress.language })
   }
+
+  const previous = backEntry(history)
+  const next = forwardEntry(history)
 
   function setAllLanguages(language: Language) {
     setGlobalLanguage(language)
@@ -322,6 +351,15 @@ export function Explorer({ catalog }: ExplorerProps) {
           </section>
         )}
       </main>
+      {activeTab === 'notes' && (previous || next) && <div className="history-control" aria-label="Reading history">
+        <button className="history-step" type="button" disabled={!previous} aria-label="Back to the previous Note" title={previous ? `Back to ${previous.title}` : 'The start of your path'} onClick={() => stepTo(-1)}>
+          <span className="history-arrow" aria-hidden="true">‹</span>
+          {previous && <span className="history-label">{previous.title}</span>}
+        </button>
+        <button className="history-step forward" type="button" disabled={!next} aria-label="Forward to the next Note" title={next ? `Forward to ${next.title}` : 'The end of your path'} onClick={() => stepTo(1)}>
+          <span className="history-arrow" aria-hidden="true">›</span>
+        </button>
+      </div>}
       <button className="top-button" type="button" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>
       <footer className="footer"><div className="shell"><Link href="/notes">All {catalog.notes.length} Agent Notes</Link> · <Link href="/skills">All {catalog.skills.length} Skills</Link> · Source: <a href={catalog.sourceRepository} target="_blank" rel="noreferrer">{catalog.sourceRepository}</a></div></footer>
     </>

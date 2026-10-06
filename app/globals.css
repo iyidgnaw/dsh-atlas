@@ -181,6 +181,14 @@ a.disclose:hover { color: var(--blue); }
 .resume-arrow { color: var(--blue); margin-left: auto; }
 .resume-dismiss { background: none; border: 0; border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 6px 9px; }
 .resume-dismiss:hover { background: rgba(23, 105, 223, 0.12); color: var(--ink); }
+.history-control { background: var(--surface); border: 1px solid var(--line); border-radius: 21px; bottom: 70px; box-shadow: var(--shadow); display: flex; max-width: min(420px, calc(100% - 36px)); overflow: hidden; position: fixed; right: 18px; z-index: 40; }
+.history-step { align-items: center; background: none; border: 0; cursor: pointer; display: flex; gap: 7px; min-width: 0; padding: 8px 12px; }
+.history-step.forward { border-left: 1px solid var(--line); }
+.history-step:disabled { color: var(--line); cursor: default; }
+.history-step:not(:disabled):hover { background: var(--surface-soft); }
+.history-arrow { font-size: 15px; line-height: 1; }
+.history-label { color: var(--muted); font-size: 12px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-step:not(:disabled):hover .history-label { color: var(--ink); }
 .progress { background: var(--blue); height: 2px; left: 0; position: fixed; top: 0; width: 0; z-index: 60; }
 .ocean-current { inset: 0; pointer-events: none; position: fixed; z-index: -1; }
 
@@ -277,6 +285,7 @@ a.disclose:hover { color: var(--blue); }
   .index-title { flex-basis: 100%; order: 3; }
   .repo-link { display: none; }
   .repo-links { display: none; }
+  .history-label { display: none; }
   .resume-eyebrow, .resume-meta { display: none; }
   .resume-jump { gap: 0; }
   .topbar { gap: 8px; }
