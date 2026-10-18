@@ -116,6 +116,23 @@ Reconciliation fails on any:
 - stale or extra generated body file;
 - generated revision that differs from the scanned upstream commit.
 
+`public/data/` is generated, so a rebase or merge that touches it is resolved by regenerating rather
+than by hand. `catalog.json` is a single line of JSON, so hand-resolving leaves conflict markers
+inside that line and the build fails much later with a bare `SyntaxError: Unexpected token '<'` that
+says nothing about the cause. `pnpm build` therefore runs `check-data.mjs` first and names the
+offending file. To resolve a conflict on generated data:
+
+```sh
+git checkout --theirs public/data   # either side will do; it is about to be overwritten
+pnpm data:build && pnpm data:check
+git add public/data
+git rebase --continue
+```
+
+The daily sync commits to `main` on its own, so this recurs whenever local work also regenerates the
+data. `pnpm data:build` reuses the existing `.cache/deepseek-harness` checkout; `pnpm sync` is the
+slower form that also fetches upstream `master` first.
+
 Run the checks independently with:
 
 ```sh
