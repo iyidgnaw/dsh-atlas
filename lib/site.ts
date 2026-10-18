@@ -4,7 +4,13 @@ export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (productionHost ? `ht
 export const isPublicSite = !siteUrl.startsWith('http://localhost')
 
 export const siteName = 'DeepSeek Harness Atlas'
+/** The shorthand the site is known by. The brand mark renders it as `DSH / Atlas`, which is not the
+ *  string anyone searches for, so the alias has to appear in metadata and in visible prose. */
+export const siteAlternateName = 'DSH Atlas'
 export const siteRepository = 'https://github.com/iyidgnaw/dsh-atlas'
+
+export const authorName = 'iyidgnaw'
+export const authorUrl = 'https://github.com/iyidgnaw'
 
 /** Shared by the Notes index and its paginated pages so the two cannot drift apart. */
 export const notesIndexDescription = 'Every DeepSeek Harness Agent Note as its own page: architecture, features, bug fixes, process, simplification, and testing decisions, in English and Chinese.'

@@ -1,7 +1,7 @@
 import { Explorer } from './_components/explorer'
 import { JsonLd } from './_components/page-frame'
 import { getCatalog } from '@/lib/catalog'
-import { absoluteUrl, siteName, siteRepository } from '@/lib/site'
+import { absoluteUrl, authorName, authorUrl, siteAlternateName, siteName, siteRepository } from '@/lib/site'
 import type { ExplorerCatalog } from '@/lib/types'
 
 export default async function HomePage() {
@@ -13,6 +13,8 @@ export default async function HomePage() {
     skills: catalog.skills.map(skill => ({ id: skill.id, name: skill.name, group: skill.group, title: skill.title, workflow: skill.workflow, description: skill.description, sourcePath: skill.sourcePath, bodyPath: skill.bodyPath })),
     notes: catalog.notes.map(note => ({ id: note.id, date: note.date, lifecycle: note.lifecycle, category: note.category, status: note.status, archived: note.archived, sourcePath: note.sourcePath, title: note.title, statusLine: note.statusLine, summary: note.summary, sourceWarnings: note.sourceWarnings, bodyPath: note.bodyPath })),
   }
+  const dates = catalog.notes.map(note => note.date).sort()
+  const author = { '@type': 'Person', '@id': absoluteUrl('/#author'), name: authorName, url: authorUrl, sameAs: [authorUrl] }
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -20,11 +22,13 @@ export default async function HomePage() {
         '@type': 'WebSite',
         '@id': absoluteUrl('/'),
         name: siteName,
+        alternateName: siteAlternateName,
         url: absoluteUrl('/'),
-        description: 'A visual field guide to DeepSeek Harness skills, architecture, and decisions.',
+        description: `${siteAlternateName} is a visual field guide to DeepSeek Harness skills, architecture, and decisions.`,
         inLanguage: ['en', 'zh-CN'],
-        author: { '@type': 'Person', name: 'iyidgnaw', url: 'https://github.com/iyidgnaw' },
+        author,
         about: { '@type': 'SoftwareSourceCode', name: 'DeepSeek Harness', codeRepository: catalog.sourceRepository },
+        sameAs: [siteRepository, catalog.sourceRepository],
         hasPart: [
           { '@type': 'CollectionPage', name: 'All Agent Notes', url: absoluteUrl('/notes') },
           { '@type': 'CollectionPage', name: 'Repository Skills', url: absoluteUrl('/skills') },
@@ -38,7 +42,8 @@ export default async function HomePage() {
         inLanguage: ['en', 'zh-CN'],
         license: 'https://opensource.org/licenses/MIT',
         isBasedOn: catalog.sourceRepository,
-        creator: { '@type': 'Person', name: 'iyidgnaw', url: 'https://github.com/iyidgnaw' },
+        creator: author,
+        temporalCoverage: dates.length ? `${dates[0]}/${dates.at(-1)}` : undefined,
         distribution: { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: absoluteUrl('/data/catalog.json') },
         codeRepository: siteRepository,
       },

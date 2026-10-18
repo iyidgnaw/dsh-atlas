@@ -4,15 +4,17 @@ import type { ReactNode } from 'react'
 import './globals.css'
 import { OceanCurrent } from './_components/ocean-current'
 import { getCatalog } from '@/lib/catalog'
-import { isPublicSite, siteName, siteUrl } from '@/lib/site'
+import { authorName, authorUrl, isPublicSite, siteAlternateName, siteName, siteUrl } from '@/lib/site'
 
-const title = 'DeepSeek Harness Atlas | Skills & Evolution'
+// Carries both names: "DeepSeek Harness" for the subject, "(DSH Atlas)" because that shorthand is
+// what people actually type, and it appeared nowhere on the site before.
+const title = 'DeepSeek Harness Atlas (DSH Atlas) | Skills & Evolution'
 
 // Counts are read from the catalog rather than written into the string: the previous hardcoded
 // figure was still advertising 723 Notes after the corpus had passed 1200.
 export async function generateMetadata(): Promise<Metadata> {
   const catalog = await getCatalog()
-  const description = `Learn DeepSeek Harness through its ${catalog.skills.length} repository Skills and ${catalog.notes.length} bilingual Agent Notes, mapped as a searchable timeline of architecture, features, and decisions.`
+  const description = `${siteAlternateName} maps DeepSeek Harness through its ${catalog.skills.length} repository Skills and ${catalog.notes.length} bilingual Agent Notes: a searchable timeline of architecture, features, and decisions.`
 
   return {
     title: { default: title, template: `%s | ${siteName}` },
@@ -29,9 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
       'AI coding agent',
       'open source agent harness',
     ],
-    authors: [{ name: 'iyidgnaw', url: 'https://github.com/iyidgnaw' }],
-    creator: 'iyidgnaw',
-    publisher: 'iyidgnaw',
+    authors: [{ name: authorName, url: authorUrl }],
+    creator: authorName,
+    publisher: authorName,
     alternates: isPublicSite ? { canonical: '/' } : undefined,
     openGraph: {
       type: 'website',

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
-import { siteRepository } from '@/lib/site'
+import { siteAlternateName, siteRepository } from '@/lib/site'
 
 interface PageFrameProps {
   active: 'notes' | 'skills'
@@ -29,7 +29,7 @@ export function PageFrame({ active, sourceRepository, sourceBranch, sourceRevisi
       </header>
       <main>{children}</main>
       <footer className="footer"><div className="shell">
-        <Link href="/">Interactive timeline</Link> · <Link href="/notes">All Notes</Link> · <Link href="/skills">All Skills</Link> · Source: <a href={sourceRepository} target="_blank" rel="noreferrer">{sourceRepository}</a> · {noteCount} bilingual Agent Notes
+        <Link href="/">Interactive timeline</Link> · <Link href="/notes">All Notes</Link> · <Link href="/skills">All Skills</Link> · {siteAlternateName} maps {noteCount} bilingual Agent Notes from <a href={sourceRepository} target="_blank" rel="noreferrer">{sourceRepository}</a>
       </div></footer>
     </>
   )

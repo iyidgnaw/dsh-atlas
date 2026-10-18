@@ -269,7 +269,7 @@ export function Explorer({ catalog }: ExplorerProps) {
           <div className="eyebrow">A visual field guide</div>
           <h1>DeepSeek Harness Atlas</h1>
           <p className="tagline">Skills, architecture, and decisions—mapped.</p>
-          <p className="learn">A development timeline and roadmap for DeepSeek Harness.</p>
+          <p className="learn">DSH Atlas is a development timeline and roadmap for DeepSeek Harness: {catalog.notes.length} bilingual Agent Notes and {catalog.skills.length} repository Skills, tracked from <a href={catalog.sourceRepository} target="_blank" rel="noreferrer">{catalog.sourceRepository}</a> on {catalog.sourceBranch} at revision {catalog.sourceRevision.slice(0, 12)}.</p>
         </header>
 
         {activeTab === 'skills' ? (
