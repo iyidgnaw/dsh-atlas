@@ -33,7 +33,7 @@ The Atlas follows upstream `master`, records the exact source commit behind ever
 
 The explorer is a single client-rendered view, so the standalone routes exist to make the corpus
 readable without JavaScript and indexable by search engines. `next build` prerenders all of them —
-currently 742 static pages.
+one per Note, one per Skill, and the paginated index — so the count grows with the corpus.
 
 ## Architecture
 
@@ -68,7 +68,8 @@ or nose-up, and its body undulates perpendicular to whichever way it is swimming
 - Per-route `title`, `description`, `canonical`, Open Graph, and Twitter metadata, with a shared title template.
 - JSON-LD: `WebSite` and `Dataset` on the home page, `CollectionPage` on the indexes, `TechArticle` per
   Note, `HowTo` per Skill, and a `BreadcrumbList` on every nested page.
-- `sitemap.xml` lists all 737 URLs with per-Note `lastModified` dates; `robots.txt` advertises it.
+- `sitemap.xml` lists every Note, Skill, and paginated index page with per-Note `lastModified` dates;
+  `robots.txt` advertises it.
 - Both languages ship in the HTML of a Note page, marked with `lang` attributes.
 
 ## Local development
