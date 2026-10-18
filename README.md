@@ -71,6 +71,11 @@ or nose-up, and its body undulates perpendicular to whichever way it is swimming
 - `sitemap.xml` lists every Note, Skill, and paginated index page with per-Note `lastModified` dates;
   `robots.txt` advertises it.
 - Both languages ship in the HTML of a Note page, marked with `lang` attributes.
+- `llms.txt` indexes the corpus for assistants: the entry points, every Skill, the machine-readable
+  catalog, and the sitemap. It links the indexes rather than re-listing 1266 Note URLs.
+- The `DSH Atlas` shorthand is stated in the `<title>`, the description, `WebSite.alternateName`, and
+  visible prose. The brand mark renders it as `DSH / Atlas`, which is not the string anyone searches
+  for, so the alias has to be written out somewhere a crawler reads.
 
 ## Local development
 
