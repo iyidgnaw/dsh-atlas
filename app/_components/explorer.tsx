@@ -306,7 +306,7 @@ export function Explorer({ catalog }: ExplorerProps) {
         ) : (
           <section>
             <div className="shell section-intro">
-              <h2>Evolution Timeline</h2>
+              <h2>Timeline</h2>
               <p>One chronological trunk, one node per decision. Cards branch left and right; each Note can switch between English and Chinese.</p>
               <div className="metrics">
                 <span className="metric"><b>{catalog.notes.length}</b> bilingual pairs</span>
@@ -314,7 +314,6 @@ export function Explorer({ catalog }: ExplorerProps) {
                 <span className="metric"><b>{catalog.notes.filter(note => note.status === 'rejected').length}</b> rejected</span>
                 <span className="metric"><b>{catalog.notes.filter(note => note.status === 'proposed').length}</b> proposed</span>
               </div>
-              <p className="archive-note">Archived nodes stay green because their decisions shipped. They are frozen historical records, not current authority.</p>
             </div>
             {resumeNote && progress && <div className="shell"><div className="resume-bar">
               <button className="resume-jump" type="button" onClick={resumeReading}>
