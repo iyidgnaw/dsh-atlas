@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 
 import type { ExplorerCatalog, Language } from '@/lib/types'
-import { SkillBody } from './skill-body'
 import {
   backEntry,
   entryFor,
@@ -24,6 +23,11 @@ import {
 
 const NoteBody = dynamic(() => import('./note-body').then(module => module.NoteBody), {
   loading: () => <p className="note-load-state">Loading Note renderer…</p>,
+})
+// Kept dynamic alongside NoteBody: a static import would pull react-markdown and its remark
+// pipeline into the explorer's initial bundle, where nothing needs them until a body is opened.
+const SkillBody = dynamic(() => import('./skill-body').then(module => module.SkillBody), {
+  loading: () => <p className="note-load-state">Loading Skill renderer…</p>,
 })
 
 const NOTE_CLASSES = ['architecture', 'bug-fix', 'feature', 'process', 'simplification', 'testing'] as const

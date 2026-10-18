@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import type { SkillBodyRecord } from '@/lib/types'
 import { MarkdownContent } from './markdown-content'
 
 interface SkillBodyProps {
@@ -17,7 +18,7 @@ export function SkillBody({ bodyPath }: SkillBodyProps) {
     fetch(bodyPath, { signal: controller.signal })
       .then(response => {
         if (!response.ok) throw new Error(`Could not load this Skill (${response.status})`)
-        return response.json() as Promise<{ content: string }>
+        return response.json() as Promise<SkillBodyRecord>
       })
       .then(record => setContent(record.content))
       .catch(cause => {

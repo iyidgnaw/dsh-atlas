@@ -7,7 +7,7 @@
     "dev": "next dev",
     "prebuild": "node check-data.mjs",
     "build": "next build",
-    "start": "next start",
+    "start": "npx serve@latest out",
     "lint": "eslint .",
     "test": "node --test",
     "data:build": "node build.mjs --source .cache/deepseek-harness",

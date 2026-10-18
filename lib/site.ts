@@ -6,6 +6,9 @@ export const isPublicSite = !siteUrl.startsWith('http://localhost')
 export const siteName = 'DeepSeek Harness Atlas'
 export const siteRepository = 'https://github.com/iyidgnaw/dsh-atlas'
 
+/** Shared by the Notes index and its paginated pages so the two cannot drift apart. */
+export const notesIndexDescription = 'Every DeepSeek Harness Agent Note as its own page: architecture, features, bug fixes, process, simplification, and testing decisions, in English and Chinese.'
+
 /** Absolute URL for structured data, which cannot use the relative forms `metadataBase` resolves. */
 export function absoluteUrl(pathname: string) {
   return new URL(pathname, siteUrl).toString()

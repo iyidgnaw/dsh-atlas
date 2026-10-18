@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { getCatalog } from '@/lib/catalog'
-import { isPublicSite, siteName } from '@/lib/site'
+import { isPublicSite, notesIndexDescription as description, siteName } from '@/lib/site'
 import { NotesIndex } from './note-index'
-
-const description = 'Every DeepSeek Harness Agent Note as its own page: architecture, features, bug fixes, process, simplification, and testing decisions, in English and Chinese.'
 
 export const metadata: Metadata = {
   title: 'All Agent Notes',

@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { getCatalog } from '@/lib/catalog'
-import { notePageCount } from '@/lib/note-pages.mjs'
+import { notePageCount, notesPerPage } from '@/lib/note-pages.mjs'
 import { isPublicSite, siteName } from '@/lib/site'
-import { NotesIndex, notesPerPage } from '../../note-index'
+import { NotesIndex } from '../../note-index'
 
 export const dynamicParams = false
 
