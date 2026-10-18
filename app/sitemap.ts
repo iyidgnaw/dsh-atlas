@@ -3,6 +3,8 @@ import type { MetadataRoute } from 'next'
 import { getCatalog, noteHref, skillHref } from '@/lib/catalog'
 import { absoluteUrl, isPublicSite } from '@/lib/site'
 
+export const dynamic = 'force-static'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!isPublicSite) return []
   const catalog = await getCatalog()

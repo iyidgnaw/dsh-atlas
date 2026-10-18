@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { Breadcrumbs, JsonLd, PageFrame } from '@/app/_components/page-frame'
 import { RenderedMarkdown } from '@/app/_components/rendered-markdown'
-import { getCatalog, getSkill, skillHref } from '@/lib/catalog'
+import { getCatalog, getSkill, getSkillBody, skillHref } from '@/lib/catalog'
 import { absoluteUrl, isPublicSite, metaDescription, siteName } from '@/lib/site'
 
 export const dynamicParams = false
@@ -45,6 +45,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
   const { name } = await params
   const [catalog, skill] = await Promise.all([getCatalog(), getSkill(name)])
   if (!skill) notFound()
+  const body = await getSkillBody(skill.bodyPath)
 
   const siblings = catalog.skills.filter(entry => entry.name !== skill.name)
   const sourceLink = `${catalog.sourceRepository}/blob/${catalog.sourceRevision}/${skill.sourcePath}`
@@ -92,7 +93,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
 
           <section className="document-body">
             <h2 className="language-rule">Full instructions</h2>
-            <RenderedMarkdown sourcePath={skill.sourcePath} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision}>{skill.content}</RenderedMarkdown>
+            <RenderedMarkdown sourcePath={skill.sourcePath} sourceRepository={catalog.sourceRepository} sourceRevision={catalog.sourceRevision}>{body.content}</RenderedMarkdown>
           </section>
 
           <section className="related">

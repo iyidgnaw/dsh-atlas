@@ -203,6 +203,12 @@ function publicRecord(note) {
   return { ...metadata, bodyPath: `/data/notes/${note.id}.json` }
 }
 
+export function publicSkill(skill) {
+  const metadata = { ...skill }
+  delete metadata.content
+  return { ...metadata, bodyPath: `/data/skills/${skill.id}.json` }
+}
+
 async function sourceRevision(sourceRepo) {
   const { stdout } = await execFile('git', ['-C', sourceRepo, 'rev-parse', 'HEAD'])
   return stdout.trim()
@@ -212,11 +218,12 @@ async function writeData(root, skills, notes, revision) {
   const dataRoot = path.join(root, 'public', 'data')
   await rm(dataRoot, { recursive: true, force: true })
   await mkdir(path.join(dataRoot, 'notes'), { recursive: true })
+  await mkdir(path.join(dataRoot, 'skills'), { recursive: true })
   const catalog = {
     sourceRepository: SOURCE_REPOSITORY,
     sourceBranch: 'master',
     sourceRevision: revision,
-    skills,
+    skills: skills.map(publicSkill),
     notes: notes.map(publicRecord),
   }
   await writeFile(path.join(dataRoot, 'catalog.json'), `${JSON.stringify(catalog)}\n`)
@@ -224,6 +231,10 @@ async function writeData(root, skills, notes, revision) {
     const target = path.join(dataRoot, 'notes', `${note.id}.json`)
     await mkdir(path.dirname(target), { recursive: true })
     await writeFile(target, `${JSON.stringify({ id: note.id, hashes: note.hashes, content: note.content })}\n`)
+  }
+  for (const skill of skills) {
+    const target = path.join(dataRoot, 'skills', `${skill.id}.json`)
+    await writeFile(target, `${JSON.stringify({ id: skill.id, hash: skill.hash, content: skill.content })}\n`)
   }
   return dataRoot
 }
@@ -241,6 +252,23 @@ async function checkBodyFiles(root, sourceNotes, generatedNotes) {
     const body = JSON.parse(await readFile(path.join(dataRoot, 'notes', `${source.id}.json`), 'utf8'))
     if (body.hashes?.en !== source.hashes.en || body.hashes?.zh !== source.hashes.zh) failures.push(`body hash mismatch: ${source.id}`)
     if (body.content?.en !== source.content.en || body.content?.zh !== source.content.zh) failures.push(`body content mismatch: ${source.id}`)
+  }
+  return failures
+}
+
+async function checkSkillBodyFiles(root, sourceSkills, generatedSkills) {
+  const failures = []
+  const expected = new Set(sourceSkills.map(skill => `skills/${skill.id}.json`))
+  const dataRoot = path.join(root, 'public', 'data')
+  const actual = new Set((await walk(path.join(dataRoot, 'skills'))).filter(file => file.endsWith('.json')).map(file => posix(path.relative(dataRoot, file))))
+  for (const relative of [...expected].filter(value => !actual.has(value)).sort()) failures.push(`missing skill body file: ${relative}`)
+  for (const relative of [...actual].filter(value => !expected.has(value)).sort()) failures.push(`extra skill body file: ${relative}`)
+  const generatedById = new Map(generatedSkills.map(skill => [skill.id, skill]))
+  for (const source of sourceSkills) {
+    if (!generatedById.has(source.id) || !actual.has(`skills/${source.id}.json`)) continue
+    const body = JSON.parse(await readFile(path.join(dataRoot, 'skills', `${source.id}.json`), 'utf8'))
+    if (body.hash !== source.hash) failures.push(`skill body hash mismatch: ${source.id}`)
+    if (body.content !== source.content) failures.push(`skill body content mismatch: ${source.id}`)
   }
   return failures
 }
@@ -272,11 +300,14 @@ async function main() {
   reportRecon('NOTES', noteRecon)
   reportRecon('SKILLS', skillRecon)
   const bodyFailures = await checkBodyFiles(root, notes.records, generatedNotes)
+  const skillBodyFailures = await checkSkillBodyFiles(root, skills, generatedSkills)
   if (catalog.sourceBranch !== 'master') bodyFailures.push(`catalog branch mismatch: ${catalog.sourceBranch}`)
   if (catalog.sourceRevision !== revision) bodyFailures.push(`catalog revision mismatch: ${catalog.sourceRevision} != ${revision}`)
   console.log(`BODY FILE RECONCILIATION\n  issues: ${bodyFailures.length}`)
   for (const failure of bodyFailures) console.log(`    ! ${failure}`)
-  const failureCount = [...Object.values(noteRecon), ...Object.values(skillRecon)].reduce((sum, items) => sum + items.length, 0) + bodyFailures.length
+  console.log(`SKILL BODY FILE RECONCILIATION\n  issues: ${skillBodyFailures.length}`)
+  for (const failure of skillBodyFailures) console.log(`    ! ${failure}`)
+  const failureCount = [...Object.values(noteRecon), ...Object.values(skillRecon)].reduce((sum, items) => sum + items.length, 0) + bodyFailures.length + skillBodyFailures.length
   console.log(failureCount ? `RECON FAILED (${failureCount} issues)` : 'RECON OK')
   if (failureCount) process.exitCode = 1
 }

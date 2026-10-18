@@ -10,7 +10,7 @@ export default async function HomePage() {
     sourceRepository: catalog.sourceRepository,
     sourceBranch: catalog.sourceBranch,
     sourceRevision: catalog.sourceRevision,
-    skills: catalog.skills.map(skill => ({ id: skill.id, name: skill.name, group: skill.group, title: skill.title, workflow: skill.workflow, description: skill.description, sourcePath: skill.sourcePath, content: skill.content })),
+    skills: catalog.skills.map(skill => ({ id: skill.id, name: skill.name, group: skill.group, title: skill.title, workflow: skill.workflow, description: skill.description, sourcePath: skill.sourcePath, bodyPath: skill.bodyPath })),
     notes: catalog.notes.map(note => ({ id: note.id, date: note.date, lifecycle: note.lifecycle, category: note.category, status: note.status, archived: note.archived, sourcePath: note.sourcePath, title: note.title, statusLine: note.statusLine, summary: note.summary, sourceWarnings: note.sourceWarnings, bodyPath: note.bodyPath })),
   }
   const structuredData = {

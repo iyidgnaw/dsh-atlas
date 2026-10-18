@@ -12,6 +12,16 @@ export interface SkillRecord {
   hash: string
 }
 
+export interface SkillMetadata extends Omit<SkillRecord, 'content'> {
+  bodyPath: string
+}
+
+export interface SkillBodyRecord {
+  id: string
+  hash: string
+  content: string
+}
+
 export interface NoteMetadata {
   id: string
   date: string
@@ -39,7 +49,7 @@ export interface Catalog {
   sourceRepository: string
   sourceBranch: 'master'
   sourceRevision: string
-  skills: SkillRecord[]
+  skills: SkillMetadata[]
   notes: NoteMetadata[]
 }
 
@@ -47,6 +57,6 @@ export interface ExplorerCatalog {
   sourceRepository: string
   sourceBranch: 'master'
   sourceRevision: string
-  skills: Array<Omit<SkillRecord, 'hash'>>
+  skills: Array<Omit<SkillMetadata, 'hash'>>
   notes: Array<Omit<NoteMetadata, 'hashes' | 'archivedDate'>>
 }

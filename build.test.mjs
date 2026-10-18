@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 
-import { reconcileRecords, scanNotes } from './build.mjs'
+import { publicSkill, reconcileRecords, scanNotes } from './build.mjs'
 
 async function writePair(root, relative, status = 'implemented') {
   const english = path.join(root, `${relative}.md`)
@@ -66,5 +66,31 @@ test('reconcileRecords reports missing, extra, duplicate, and changed generated 
     extra: ['c'],
     duplicate: ['a'],
     hashMismatch: ['a'],
+  })
+})
+
+test('publicSkill keeps the catalog lightweight and gives the full text a separate file', () => {
+  const skill = {
+    id: 'example-skill',
+    name: 'example-skill',
+    group: 'Testing',
+    title: 'Example Skill',
+    workflow: ['Read', 'Verify'],
+    description: 'A test fixture.',
+    sourcePath: '.agents/skills/example-skill/SKILL.md',
+    content: 'Full instructions that must not be included in the homepage catalog.',
+    hash: 'abc123',
+  }
+
+  assert.deepEqual(publicSkill(skill), {
+    id: 'example-skill',
+    name: 'example-skill',
+    group: 'Testing',
+    title: 'Example Skill',
+    workflow: ['Read', 'Verify'],
+    description: 'A test fixture.',
+    sourcePath: '.agents/skills/example-skill/SKILL.md',
+    hash: 'abc123',
+    bodyPath: '/data/skills/example-skill.json',
   })
 })

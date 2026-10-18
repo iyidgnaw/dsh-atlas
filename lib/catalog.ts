@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { cache } from 'react'
 
-import type { Catalog, Language, NoteBodyRecord, NoteMetadata, SkillRecord } from './types'
+import type { Catalog, Language, NoteBodyRecord, NoteMetadata, SkillBodyRecord, SkillMetadata } from './types'
 
 const dataRoot = path.join(process.cwd(), 'public')
 
@@ -21,9 +21,14 @@ export const getNote = cache(async (id: string): Promise<NoteMetadata | undefine
   return catalog.notes.find(note => note.id === id)
 })
 
-export const getSkill = cache(async (name: string): Promise<SkillRecord | undefined> => {
+export const getSkill = cache(async (name: string): Promise<SkillMetadata | undefined> => {
   const catalog = await getCatalog()
   return catalog.skills.find(skill => skill.name === name)
+})
+
+export const getSkillBody = cache(async (bodyPath: string): Promise<SkillBodyRecord> => {
+  const source = await readFile(path.join(dataRoot, bodyPath.replace(/^\//, '')), 'utf8')
+  return JSON.parse(source) as SkillBodyRecord
 })
 
 /** Maps every upstream Note path — English and Chinese — to the Atlas route that renders it. */

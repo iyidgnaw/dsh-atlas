@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 
 import type { ExplorerCatalog, Language } from '@/lib/types'
+import { SkillBody } from './skill-body'
 import {
   backEntry,
   entryFor,
@@ -21,7 +22,6 @@ import {
   subscribeReading,
 } from '@/lib/reading-session'
 
-const MarkdownContent = dynamic(() => import('./markdown-content').then(module => module.MarkdownContent))
 const NoteBody = dynamic(() => import('./note-body').then(module => module.NoteBody), {
   loading: () => <p className="note-load-state">Loading Note renderer…</p>,
 })
@@ -294,7 +294,7 @@ export function Explorer({ catalog }: ExplorerProps) {
                     <div className="flow">{skill.workflow.map((step, index) => <div className="flow-step" data-step={index + 1} key={step}>{step}</div>)}</div>
                   </div>
                   <button className="disclose" type="button" aria-expanded={open} onClick={() => setOpenSkills(current => toggleSet(current, skill.id))}>Read the full workflow</button>
-                  {open && <div className="skill-source"><div className="source-path"><a href={`${catalog.sourceRepository}/blob/${catalog.sourceRevision}/${skill.sourcePath}`} target="_blank" rel="noreferrer">{skill.sourcePath}</a></div><div className="markdown"><MarkdownContent>{skill.content}</MarkdownContent></div></div>}
+                  {open && <div className="skill-source"><div className="source-path"><a href={`${catalog.sourceRepository}/blob/${catalog.sourceRevision}/${skill.sourcePath}`} target="_blank" rel="noreferrer">{skill.sourcePath}</a></div><div className="markdown"><SkillBody bodyPath={skill.bodyPath} /></div></div>}
                 </article>
               })}
             </div>

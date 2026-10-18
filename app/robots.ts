@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next'
 
 import { absoluteUrl, isPublicSite, siteUrl } from '@/lib/site'
 
+export const dynamic = 'force-static'
+
 export default function robots(): MetadataRoute.Robots {
   // `/data/` stays crawlable: the explorer fetches Note bodies from there while rendering.
   return {
